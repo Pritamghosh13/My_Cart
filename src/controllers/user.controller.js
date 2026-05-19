@@ -7,9 +7,34 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 
 
+//generating access or refreshToken
+const generateAccessAndRefreshToken = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken;
+        await user.save({validateBeforeSave: false}) //saving
+
+        return {accessToken, refreshToken}
+
+
+        
+    } catch (err) {
+        console.log(err);
+        throw new ApiError(500, "ERROR while generating the access and refresh token")
+        
+    }
+}
+
+
+
+
+//register a user.
 const userRegister = asyncHandler(async(req, res) => {
     const { username, email, fullName, password } = req.body
-    
+
     const addresses = JSON.parse(req.body.addresses);
 
     console.log(req.body);
@@ -79,7 +104,55 @@ const userRegister = asyncHandler(async(req, res) => {
 })
 
 
+
+//log in a user 
+const userLoggedIn = asyncHandler(async(req, res) => {
+    const {username, email, password} = req.body;
+
+    if(!(username || email)){
+        throw new ApiError(400, "username or email is required")
+    }   
+
+    if (!password) {
+        throw new ApiError(400, "Password field is empty")
+    }
+
+
+    const user = await User.findOne({
+        $or: [{username}, {email}]
+    })
+
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+
+    const verifyPassword = await user.isPasswordCorrect(password)
+
+    if (!verifyPassword) {
+        throw new ApiError(401, "Invalid user credentials")
+    }
+
+    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
+
+    const loggedUser = await User.findById(user._id).select("-password -refreshToken")
+
+
+    //for safty of cookies.
+    const options = {
+        httpOnly: true,
+        secure: true,
+    }
+
+    return res.status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(new ApiResponse(200, loggedUser, "User logged in successfully"))
+
+})
+
+
 export {
-    userRegister
+    userRegister,
+    userLoggedIn
 
 }
