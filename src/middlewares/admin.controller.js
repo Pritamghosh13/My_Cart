@@ -3,7 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 
 
 export const adminOrNot = asyncHandler(async(req, res, next)=> {
-    console.log("hello");
+    console.log("hello I am admin");
     
     if (req.user?.role !== "admin") {
         throw new ApiError(403, "Admin access required")

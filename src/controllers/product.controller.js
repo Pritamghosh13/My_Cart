@@ -5,7 +5,7 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { Product } from "../models/products.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-
+import { v2 as cloudinary} from "cloudinary"
 
 
 //adding products.
@@ -15,9 +15,13 @@ const addproduct = asyncHandler(async(req, res) => {
     const {title, description, price, stock, category, brand} = req.body;
 
     if (
-        [title, description, price, stock, category].some((field) =>!field || field?.trim() ==="")
+    !title?.trim() ||
+    !description?.trim() ||
+    !category?.trim() ||
+    price == null ||
+    stock == null
     ) {
-        throw new ApiError(400, "All fields are required")
+        throw new ApiError(400, "All required fields must be provided");
     }
 
     const files = req.files;
@@ -57,6 +61,95 @@ const addproduct = asyncHandler(async(req, res) => {
 })
 
 
+//updating product details
+const updateProductDetails = asyncHandler(async (req, res) => {
+    console.log("upadting controller works");
+    
+    const {title, description, price, stock} = req.body;
+
+    const {productId} = req.params;
+
+
+    // if (
+    // !title?.trim() ||
+    // !description?.trim() ||
+    // price == null ||
+    // stock == null
+    // ) {
+    //     throw new ApiError(400, "All required fields must be provided");
+    // }
+
+    const product = await Product.findOne({
+        createdBy: req.user?._id,
+        _id: productId
+    })
+
+    if (!product) {
+        throw new ApiError(404, "Product not found")
+    }
+
+    if (title?.trim()) {
+        product.title = title;
+    }
+
+    if (description?.trim()) {
+        product.description = description;
+    }
+
+    if (price != null) {
+        product.price = price;
+    }
+
+    if (stock != null) {
+        product.stock = stock;
+    }
+
+
+    const files = req.files;
+
+    
+
+    if( files && files.length > 0 ){
+        // let updatedImage = [];
+
+       
+        for (const image of product.images){
+            if(image.public_id){
+                await cloudinary.uploader.destroy(image.public_id)
+            }
+        }
+
+        product.images = [];
+
+
+        for(const file of files){
+            
+            const response = await uploadOnCloudinary(file.path)
+
+                if(response){
+                    product.images.push({
+                        url: response.url,
+                        public_id: response.public_id
+                    })
+                }
+        }
+
+    }
+
+    await product.save()
+
+
+    return res.status(200)
+    .json(new ApiResponse(200, product, "Product details updated successfully"))
+
+
+
+
+
+
+})
+
+
 
 
 
@@ -66,5 +159,9 @@ const addproduct = asyncHandler(async(req, res) => {
 
 export {
     addproduct,
+    updateProductDetails
 
 }
+
+
+
