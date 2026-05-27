@@ -7,6 +7,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 
 
+
 //generating access or refreshToken
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -27,7 +28,6 @@ const generateAccessAndRefreshToken = async (userId) => {
         
     }
 }
-
 
 
 
@@ -57,7 +57,7 @@ const userRegister = asyncHandler(async(req, res) => {
 
     const avatarlocalPath =  req.file?.path;
 
-    console.log(avatarlocalPath);
+    // console.log(avatarlocalPath);
 
     let avatar = {
         url: "",
@@ -150,7 +150,7 @@ const userLoggedIn = asyncHandler(async(req, res) => {
 
 })
 
-
+//log out a user.
 const userLogOut = asyncHandler(async(req, res) => {
     
     await User.findByIdAndUpdate(
@@ -178,9 +178,108 @@ const userLogOut = asyncHandler(async(req, res) => {
 }) 
 
 
+//change password
+const changeUserPassword = asyncHandler(async(req, res) => {
+    const {oldPassword, newPassword, confrimPassword} = req.body
+
+    const user = await User.findById(req.user?._id)
+
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+
+    if(newPassword !== confrimPassword){
+        throw new ApiError(401, "The password is have to same in both filed")
+    }
+
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "User credintials incorrect")
+    }
+
+    user.password = newPassword;
+
+    await user.save()
+
+
+    return res.status(200)
+    .json(new ApiResponse(200, {}, "Password updated successfully"))
+
+})
+
+
+
+//get current user profile
+const getCurrentUser = asyncHandler(async (req, res) => {
+
+    const user = await User.findById(req.user?._id)
+    .select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            user,
+            "Current user fetched successfully"
+        )
+    );
+
+});
+
+
+//update user profile details
+const updateProfile = asyncHandler(async (req, res) => {
+
+    const { fullName, email, username } = req.body;
+
+    const user = await User.findById(req.user?._id);
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    // update fields only if provided
+    if (fullName?.trim()) {
+        user.fullName = fullName;
+    }
+
+    if (email?.trim()) {
+        user.email = email;
+    }
+
+    if (username?.trim()) {
+        user.username = username;
+    }
+
+    await user.save({ validateBeforeSave: false });
+
+    const updatedUser = await User.findById(user._id)
+    .select("-password -refreshToken");
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            updatedUser,
+            "Profile updated successfully"
+        )
+    );
+
+});
+
+
+
+
 export {
     userRegister,
     userLoggedIn,
-    userLogOut
+    userLogOut,
+    changeUserPassword,
+    getCurrentUser,
+    updateProfile
 
 }
