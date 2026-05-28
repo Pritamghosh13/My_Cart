@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { Product } from "../models/products.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { v2 as cloudinary} from "cloudinary"
+import { getCurrentUser } from "./user.controller.js";
 
 
 //adding products.
@@ -206,14 +207,29 @@ const getSingleProduct = asyncHandler(async (req, res) => {
 //get all products
 const getAllProducts = asyncHandler(async (req, res) => {
 
+   const page = Number(req.query.page) || 1;
+
+   const limit = Number(req.query.limit) || 5;
+
+   const skip = (page - 1) * limit;
+
+   const totalProduct = await Product.countDocuments()
+
     const products = await Product.find()
     .populate("createdBy", "fullName email username")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
 
     return res.status(200).json(
         new ApiResponse(
             200,
+           {
             products,
+            currentPage : page,
+            totalPages : Math.ceil(totalProduct/limit),
+            totalProduct
+           },
             "Products fetched successfully"
         )
     );
