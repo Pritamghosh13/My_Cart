@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { userRegister, userLoggedIn, userLogOut, changeUserPassword, getCurrentUser, updateProfile, updateAvatar} from "../controllers/user.controller.js";
+import { userRegister, userLoggedIn, userLogOut, changeUserPassword, getCurrentUser, updateProfile, updateAvatar, deleteUserAccount} from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -22,6 +22,6 @@ router.route("/profile/update").patch(verifyJWT, updateProfile)
 
 router.route("/profile/avatar/update").patch(verifyJWT, upload.single("avatar"), updateAvatar)
 
-
+router.route("/delete-account").delete(verifyJWT, deleteUserAccount)
 
 export default router

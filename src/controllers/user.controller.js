@@ -1,4 +1,5 @@
 
+import { Product } from "../models/products.model.js";
 import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/Asynchandller.js";
 import { ApiError } from "../utils/apiError.js";
@@ -308,6 +309,43 @@ const updateAvatar = asyncHandler(async (req, res) => {
 
 
 
+//delete the user account
+const deleteUserAccount = asyncHandler(async (req, res) => {
+    console.log("Hello, this is controller");
+    
+    const user = await User.findById(req.user?._id)
+
+    if (!user) {
+        throw new ApiError(404, "user not found");
+    }
+
+    if(user.avatar.public_id){
+        await cloudinary.uploader.destroy(user.avatar.public_id)
+    }
+
+    const products = await Product.find({
+        createdBy: req.user?._id
+    })
+
+    for(const product of products){
+        for(const image of product.images){
+            if(image.public_id){
+                await cloudinary.uploader.destroy(image.public_id)
+            }
+        }
+    }
+
+    await User.findByIdAndDelete(user._id)
+
+    await Product.deleteMany({
+        createdBy: user._id
+    })
+
+
+    return res.status(200)
+    .json(new ApiResponse(200, {}, "User account deleted successfully"))
+})
+
 
 
 export {
@@ -317,6 +355,7 @@ export {
     changeUserPassword,
     getCurrentUser,
     updateProfile,
-    updateAvatar
+    updateAvatar,
+    deleteUserAccount
 
 }

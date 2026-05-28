@@ -179,6 +179,48 @@ const deleteProduct = asyncHandler(async (req, res) => {
 })
 
 
+//get one product
+const getSingleProduct = asyncHandler(async (req, res) => {
+
+    const { productId } = req.params;
+
+    const product = await Product.findById(productId)
+    .populate("createdBy", "fullName email username");
+
+    if (!product) {
+        throw new ApiError(404, "Product not found");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            product,
+            "Product fetched successfully"
+        )
+    );
+
+});
+
+
+
+//get all products
+const getAllProducts = asyncHandler(async (req, res) => {
+
+    const products = await Product.find()
+    .populate("createdBy", "fullName email username")
+    .sort({ createdAt: -1 });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            products,
+            "Products fetched successfully"
+        )
+    );
+
+});
+
+
 
 
 
@@ -188,7 +230,9 @@ const deleteProduct = asyncHandler(async (req, res) => {
 export {
     addproduct,
     updateProductDetails,
-    deleteProduct
+    deleteProduct,
+    getAllProducts,
+    getSingleProduct
 
 }
 
