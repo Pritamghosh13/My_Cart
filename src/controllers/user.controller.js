@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/Asynchandller.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {v2 as cloudinary} from "cloudinary"
 
 
 
@@ -273,6 +274,41 @@ const updateProfile = asyncHandler(async (req, res) => {
 
 
 
+//update the avatar
+const updateAvatar = asyncHandler(async (req, res) => {
+    const user = await User.findOne({
+        _id: req.user?._id
+    })
+
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+
+   if (user.avatar.public_id) {
+    await cloudinary.uploader.destroy(user.avatar.public_id)
+   }
+   
+   const avatarlocalPath = req.file?.path;
+   
+   if (!avatarlocalPath) {
+      throw new ApiError(400, "Avatar file is required");
+   }
+
+   const response = await cloudinary.uploader.upload(avatarlocalPath)
+
+   user.avatar.url = response.url
+   user.avatar.public_id = response.public_id
+   
+   await user.save();
+
+   return res.status(200)
+   .json(new ApiResponse(200, user, "Your avatar updated successfully"))
+
+})
+
+
+
+
 
 export {
     userRegister,
@@ -280,6 +316,7 @@ export {
     userLogOut,
     changeUserPassword,
     getCurrentUser,
-    updateProfile
+    updateProfile,
+    updateAvatar
 
 }
