@@ -1,0 +1,91 @@
+import { Cart } from "../models/cart.model.js";
+import { Product } from "../models/products.model.js";
+import { asyncHandler } from "../utils/Asynchandller.js";
+import { ApiError } from "../utils/apiError.js";
+import { ApiResponse } from "../utils/apiResponse.js";
+
+
+
+
+//add items to cart
+const addToCart = asyncHandler(async (req, res) => {
+    const { productId, quantity } = req.body
+
+    if (!productId) {
+        throw new ApiError(400, "Product Id is required")
+    }
+
+    if (!quantity || quantity < 1) {
+        throw new ApiError(400, "Quantity must be at least 1");
+    }
+
+    const product = await Product.findById(productId)
+
+
+    if (!product) {
+        throw new ApiError(400, "Product not available")
+    }
+
+    const userCart = await Cart.findOne({
+        user: req.user?._id
+    })
+
+    //if cart doesn't exist, create one 
+    if (!userCart) {
+        const createdCart = await Cart.create({
+            user: req.user?._id,
+            items: [
+                {
+                    product: productId,
+                    quantity
+                }
+            ]
+        })
+
+        return res.status(200)
+        .json(new ApiResponse(200, createdCart, "Product added to cart successfully"))
+    }
+
+
+    //if cart exist.
+
+    const itemIndex = userCart.items.findIndex(
+        item => item.product.toString() === productId
+    )
+
+    if(itemIndex > -1){
+        userCart.items[itemIndex].quantity += quantity;
+    }
+    else{
+        userCart.items.push({
+            product: productId,
+            quantity
+        })
+    }
+
+    await userCart.save()
+
+    const updatedCart = await Cart.findById(userCart._id).populate("items.product")
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            updatedCart,
+            "Product added to cart successfully"
+        )
+    )
+
+})
+
+
+
+
+
+
+
+
+
+
+export {
+    addToCart,
+}
