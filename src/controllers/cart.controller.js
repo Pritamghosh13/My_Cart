@@ -79,6 +79,40 @@ const addToCart = asyncHandler(async (req, res) => {
 
 
 
+//remove from cart
+const removeFromCart = asyncHandler(async (req, res) => {
+
+    const { productId } = req.params;
+
+    const cart = await Cart.findOne({
+        user: req.user?._id
+    })
+
+    if (!cart) {
+        throw new ApiError(404, "Cart not found")
+    }
+
+    const itemIndex = cart.items.findIndex(
+        item => item.product.toString() === productId
+    )
+
+    if (itemIndex === -1) {
+        throw new ApiError(404, "Product not found")
+    }
+
+    cart.items.splice(itemIndex, 1);
+
+    await cart.save()
+
+    await cart.populate("items.product");
+
+    return res.status(200)
+    .json(new ApiResponse(200, cart, "Product remove from cart"))
+
+})
+
+
+
 
 
 
@@ -88,4 +122,5 @@ const addToCart = asyncHandler(async (req, res) => {
 
 export {
     addToCart,
+    removeFromCart
 }
