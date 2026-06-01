@@ -114,6 +114,74 @@ const removeFromCart = asyncHandler(async (req, res) => {
 
 
 
+//update cart quantity
+const updateCartQuantity = asyncHandler(async (req, res) => {
+    const {productId, quantity} = req.body;
+
+    if (!productId) {
+        throw new ApiError(400, "Product Id is required")
+    }
+
+    if (!quantity || quantity<1) {
+        throw new ApiError(400, "Quantity is required")
+    }
+
+    const cart = await Cart.findOne({
+        user: req.user?._id
+    })
+
+    if (!cart) {
+        throw new ApiError(404, "Cart not found")
+    }
+
+    const itemIndex = cart.items.findIndex(
+        item => item.product.toString() === productId
+    )
+
+    if (itemIndex === -1) {
+        throw new ApiError(404, "Product not found in cart");
+    }
+
+    cart.items[itemIndex].quantity = quantity;
+
+    await cart.save()
+
+    await cart.populate("items.product")
+
+    return res.status(200).json(
+    new ApiResponse(
+        200,
+        cart,
+        "Cart quantity updated successfully"
+    )
+    );
+
+
+
+
+})
+
+
+
+
+//get user cart
+const getUserCart = asyncHandler(async (req, res) => {
+    const cart = await Cart.findOne({
+        user: req.user?._id
+    }).populate("items.product")
+
+    if (!cart) {
+        throw new ApiError(404, "User cart not found")
+    }
+
+
+    return res.status(200)
+    .json(new ApiResponse(200, cart, "User cart fetched successfully"))
+})
+
+
+
+
 
 
 
@@ -122,5 +190,7 @@ const removeFromCart = asyncHandler(async (req, res) => {
 
 export {
     addToCart,
-    removeFromCart
+    removeFromCart,
+    updateCartQuantity,
+    getUserCart
 }
