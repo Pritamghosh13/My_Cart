@@ -182,6 +182,32 @@ const getUserCart = asyncHandler(async (req, res) => {
 
 
 
+//clear cart
+const clearCart = asyncHandler(async (req, res) => {
+
+    const cart = await Cart.findOne({
+        user: req.user?._id
+    });
+
+    if (!cart) {
+        throw new ApiError(404, "Cart not found");
+    }
+
+    cart.items = [];
+
+    await cart.save();
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            cart,
+            "Cart cleared successfully"
+        )
+    );
+});
+
+
+
 
 
 
@@ -192,5 +218,6 @@ export {
     addToCart,
     removeFromCart,
     updateCartQuantity,
-    getUserCart
+    getUserCart,
+    clearCart
 }
