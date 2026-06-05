@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyCart | Premium E-Commerce</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Global Loading Overlay -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="loader-container">
+            <div class="spinner"></div>
+            <p>Loading MyCart...</p>
+        </div>
+    </div>
+
+    <!-- Global Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="#/" class="nav-logo">
+                <i class="fa-solid fa-cart-shopping nav-logo-icon"></i>
+                <span>My<span class="gradient-text">Cart</span></span>
+            </a>
+            
+            <nav class="nav-menu" id="nav-menu">
+                <a href="#/" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="#/cart" class="nav-link nav-cart-link" id="nav-cart-btn">
+                    <i class="fa-solid fa-bag-shopping"></i> Cart
+                    <span class="cart-badge hidden" id="cart-badge">0</span>
+                </a>
+                <a href="#/orders" class="nav-link hidden" id="nav-orders-btn"><i class="fa-solid fa-receipt"></i> Orders</a>
+                <a href="#/admin" class="nav-link hidden" id="nav-admin-btn"><i class="fa-solid fa-gauge-high"></i> Admin Panel</a>
+                <a href="#/profile" class="nav-link hidden" id="nav-profile-btn"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#/login" class="nav-btn" id="nav-auth-btn"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</a>
+            </nav>
+
+            <button class="nav-mobile-toggle" id="nav-mobile-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main View Viewport -->
+    <main id="app" class="app-viewport"></main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 MyCart Premium. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- App Router/Entry Script -->
+    <script type="module" src="js/router.js"></script>
+</body>
+</html>

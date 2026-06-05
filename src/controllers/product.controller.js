@@ -243,6 +243,10 @@ const getAllProducts = asyncHandler(async (req, res) => {
 
 
 
+
+
+
+
 export {
     addproduct,
     updateProductDetails,
